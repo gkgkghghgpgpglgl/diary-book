@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#eee9df" />
+  <meta name="description" content="한 장씩 펼쳐 읽는 작은 비밀 일기장" />
+  <title>작은 일기장</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light;
+      --bg:#eee9df;
+      --cover:#b1a085;
+      --paper:#fffaf0;
+      --ink:#39342f;
+      --muted:#80786d;
+      --ruling:rgba(126,151,160,.24);
+      --line-height:32px;
+    }
+    * {box-sizing:border-box}
+    html,body{margin:0; min-height:100%;}
+    body{
+      min-height:100svh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:clamp(16px,4vw,40px) 10px 28px;
+      background:radial-gradient(ellipse at 52% 36%,#f6f2e9 0%,#eee9df 64%,#e5dfd2 100%);
+      color:var(--ink);
+      font-family:'Gowun Dodum','Malgun Gothic',sans-serif;
+      -webkit-font-smoothing:antialiased;
+    }
+    .layout{width:min(910px,100%); display:flex;flex-direction:column;align-items:center;gap:22px}
+    .topline{color:#80776a;letter-spacing:.26em;font:11px Georgia,serif;opacity:.72;text-align:center}
+    .book-wrap{position:relative;width:min(700px,94vw);perspective:1800px;filter:drop-shadow(0 20px 14px rgba(66,49,25,.13))}
+    .book-wrap:before{content:"";position:absolute;inset:5px -7px -7px -7px;border-radius:7px 12px 14px 7px;background:var(--cover);box-shadow:0 8px 17px rgba(67,51,35,.13)}
+    .book{
+      position:relative; isolation:isolate;
+      width:100%; height:clamp(402px,59vw,460px);
+      display:grid;grid-template-columns:1fr 1fr;
+      background:var(--paper);border-radius:6px 12px 12px 6px;
+      box-shadow:inset 0 0 0 1px rgba(116,91,62,.18),0 2px 5px rgba(66,50,27,.12);
+    }
+    .page{
+      position:relative; overflow:hidden;
+      background:
+        repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--line-height) - 1px),var(--ruling) var(--line-height)),
+        var(--paper);
+      background-position:0 0,0 0;
+      padding:clamp(21px,3.4vw,34px) clamp(19px,3.5vw,38px);
+      display:flex;flex-direction:column;
+      min-width:0;
+    }
+    .page-left{border-radius:5px 0 0 5px;box-shadow:inset -17px 0 24px -24px rgba(75,58,43,.7)}
+    .page-right{border-radius:0 11px 11px 0;box-shadow:inset 17px 0 24px -24px rgba(75,58,43,.7)}
+    .page-left:after,.page-right:after{content:"";position:absolute;top:0;bottom:0;pointer-events:none;z-index:1}
+    .page-left:after{right:0;width:18px;background:linear-gradient(to left,rgba(82,63,37,.1),transparent)}
+    .page-right:after{left:0;width:18px;background:linear-gradient(to right,rgba(82,63,37,.1),transparent)}
+    .book:after{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;transform:translateX(-50%);z-index:3;background:linear-gradient(to right,rgba(98,74,53,.13),rgba(255,255,255,.9));box-shadow:0 0 5px rgba(82,65,43,.12);pointer-events:none}
+    .page-date{font:700 clamp(15px,2.1vw,20px) 'Gaegu','Gowun Dodum',sans-serif;letter-spacing:.018em;padding:0;margin:0 0 2px}
+    .page-weather{font:400 clamp(13px,1.8vw,17px) 'Gaegu','Gowun Dodum',sans-serif;color:#6a675e;padding:0;margin:0 0 clamp(15px,2.2vw,25px)}
+    .entry{
+      margin:0;
+      font:400 clamp(15px,1.7vw,18.5px)/1.5 'Gaegu','Gowun Dodum',sans-serif;
+      letter-spacing:-.012em;
+      white-space:pre-line;
+      overflow-y:auto;
+      overflow-x:hidden;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(122,107,90,.2) transparent;
+      padding-right:2px;
+      flex:1;
+      word-break:keep-all;
+      overflow-wrap:anywhere;
+    }
+    .entry::-webkit-scrollbar{width:3px}.entry::-webkit-scrollbar-thumb{background:rgba(122,107,90,.22);border-radius:20px}
+    .page-num{position:absolute;bottom:12px;left:0;right:0;text-align:center;font:11px Georgia,serif;color:#a49c8b;pointer-events:none}
+    .controls{display:flex;align-items:center;justify-content:center;gap:22px;min-height:42px;user-select:none}
+    .control{
+      appearance:none;border:1px solid rgba(100,87,68,.19);background:rgba(255,251,244,.64);
+      width:40px;height:40px;border-radius:50%;color:#685f51;display:grid;place-items:center;
+      cursor:pointer;box-shadow:0 3px 8px rgba(68,54,32,.06);transition:background .2s,transform .2s,opacity .2s;
+    }
+    .control:hover:not(:disabled){background:#fffaf1;transform:translateY(-1px)}
+    .control:disabled{opacity:.28;cursor:default}
+    .control:focus-visible{outline:2px solid #967e5d;outline-offset:3px}
+    .control svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+    .count{color:#746b5d;min-width:94px;text-align:center;font:14px Georgia,serif;letter-spacing:.09em}
+    .hint{font-size:11px;color:#948a7b;line-height:1.5;text-align:center}
+    .flipping-next .page-right{animation:flip-next .49s ease-in-out}
+    .flipping-prev .page-left{animation:flip-prev .49s ease-in-out}
+    @keyframes flip-next{0%{transform:rotateY(0deg);opacity:1}45%{transform:rotateY(-24deg);opacity:.55}100%{transform:rotateY(0deg);opacity:1}}
+    @keyframes flip-prev{0%{transform:rotateY(0deg);opacity:1}45%{transform:rotateY(24deg);opacity:.55}100%{transform:rotateY(0deg);opacity:1}}
+    @media (max-width:640px){
+      :root{--line-height:25px}
+      body{padding:20px 2vw}
+      .layout{gap:16px}
+      .book-wrap{width:96vw}
+      .book{height:clamp(370px,105vw,455px)}
+      .page{padding:16px 12px 23px}
+      .page-date{font-size:clamp(13px,3.6vw,17px);margin-bottom:2px}
+      .page-weather{font-size:clamp(12px,3.3vw,15px);margin-bottom:16px}
+      .entry{font-size:clamp(12px,3.28vw,16px);line-height:1.48;letter-spacing:-.028em}
+      .page-num{bottom:7px;font-size:9px}
+      .hint{font-size:10px}
+    }
+    @media (max-width:360px){
+      .page{padding-left:10px;padding-right:10px}
+      .entry{font-size:11.7px}
+      .page-weather{margin-bottom:12px}
+    }
+    @media (prefers-reduced-motion:reduce){.flipping-next .page-right,.flipping-prev .page-left{animation:none}.control{transition:none}}
+  </style>
+</head>
+<body>
+  <main class="layout">
+    <div class="topline" aria-hidden="true">PRIVATE DIARY</div>
+    <section class="book-wrap" aria-label="펼쳐진 일기장">
+      <div class="book" id="book" aria-live="polite">
+        <article class="page page-left" id="leftPage"></article>
+        <article class="page page-right" id="rightPage"></article>
+      </div>
+    </section>
+    <nav class="controls" aria-label="일기장 페이지 이동">
+      <button class="control" id="prev" type="button" aria-label="이전 장" title="이전 장">
+        <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <span class="count" id="counter" aria-label="현재 장수">01 / 06</span>
+      <button class="control" id="next" type="button" aria-label="다음 장" title="다음 장">
+        <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </nav>
+    <div class="hint">화살표를 누르거나 좌우로 넘겨보세요.</div>
+  </main>
+  <script>
+    // 한 장 = 펼쳐진 양면 2쪽. 각 일기의 마지막 문장은 덧붙인 한 줄입니다.
+    const diaries = [
+      {date:'2021-04-05',weather:'맑음',text:`날은 맑은데 내마음은 슬프다.
+너를 두고 군대에 가야한다.
+남자들 소굴에 너를 지켜야 하는데, 18개월간 너를 볼수가 없다니 죽을것 같다.
+휴가를 나오면 제일 먼저 너부터 보러 갈 거다.`},
+      {date:'2023-09-08',weather:'비',text:`다행히 너는 내가 군대에 가있을동안 남자친구가 없었다
+제대한 이후에도 너랑 계속 붙어다니니 너무 좋았다.
+이 평범한 일상이 얼마나 그리웠는지 모른다.`},
+      {date:'2026-10-29',weather:'맑음',text:`5급 공채에 합격했다.
+너만 이제 내거가 된다면 내 돈이던 명예던 다 줄텐데.
+아무것도 모르고 축하해주는 너를 보며 가슴 한쪽이 쓰라리다.
+정작 가장 듣고 싶은 말은 아직 듣지 못했다.`},
+      {date:'2026-11-02',weather:'맑음',text:`너가 술에 취한채 나에게 애교를 부렸다.
+못참고 키스할뻔했다.
+기억 못 할까 봐 다행이면서도 조금은 아쉬웠다.`},
+      {date:'2026-11-20',weather:'흐림',text:`오늘 너가 우산이 없는데 비가온다면 칭얼거렸다.
+뛰쳐나가 너에게 우산을 갖다주고싶은걸 겨우 참았다.
+결국 하루 종일 네가 걱정돼서 창밖만 봤다.`},
+      {date:'2027-04-01',weather:'맑음',text:`오늘 만우절이라고 너가 나에게 고백했다.
+나도 같이 고백했다.
+눈이 흔들리지는 않았는지, 장난이 아니라 진심이 묻어나지 않았는지 계속 두근거렷다
+너는 웃고 넘겼지만 나는 그러지 못했다.`},
+      {date:'2027-07-30',weather:'폭염',text:`내 집에 같이 있는데 덥다고 너가 샤워를 하러 들어갔다.
+샤워소리만 들어도 발딱 서는걸 너는 알까.
+괜히 거실 에어컨 온도만 몇 번이나 내렸다.`},
+      {date:'2027-09-05',weather:'비바람',text:`너가 소개팅이 잘 안됐다면 나에게 칭얼댔다.
+밤낮으로 빈 보람이 있다.
+그런데도 다음 소개팅은 잡지 않았으면 좋겠다.`},
+      {date:'2027-10-11',weather:'흐림',text:`너가 저녁에 같이 치맥을 하자고 회사앞으로 와서 기다리고 있었다.
+멀리서 웃으며 나에게 손을 흔드는데 달려가 껴안고 키스하고싶은걸 겨우 참았다.
+그날은 네가 먼저 와 있었다는 사실만으로도 좋았다.`},
+      {date:'2027-12-25',weather:'눈',text:`크리스마스에 할일 없다며 영화관에 갔다.
+너랑 살이 아니라 옷만 닿아고 떨리는걸 너는 알까.
+영화가 무슨 내용이었는지는 하나도 기억나지 않는다.`},
+      {date:'2028-01-02',weather:'바람',text:`오늘 너랑 쇼핑을 갔다.
+정말 다 예쁘고 천사같았다.
+이상하다고 툴툴댔지만 그건 그냥 내 마음을 가리기 위한 방패였을뿐이었다.
+솔직하게 예쁘다고 말해줄 걸 그랬다.`},
+      {date:'2028-02-15',weather:'맑음',text:`너가 남자친구랑 헤어졌다며 내게 울면서 안겼다.
+다른남자때문에 우는너를 보는게 짜증이 났다.
+하지만 대신 너를 안을수 있어서 좋은 내가 싫었다.
+이런 마음인 걸 들킬까 봐 아무 말도 못 했다.`}
+    ];
+    const spreadTotal=Math.ceil(diaries.length/2);
+    const book=document.getElementById('book');
+    const left=document.getElementById('leftPage');
+    const right=document.getElementById('rightPage');
+    const counter=document.getElementById('counter');
+    const prev=document.getElementById('prev');
+    const next=document.getElementById('next');
+    let spread=0;
+    let moving=false;
+
+    function renderPage(element,diary,pageNumber){
+      element.replaceChildren();
+      if(!diary){return;}
+      const date=document.createElement('h2');date.className='page-date';date.textContent=diary.date;
+      const weather=document.createElement('p');weather.className='page-weather';weather.textContent=diary.weather;
+      const body=document.createElement('p');body.className='entry';body.textContent=diary.text;
+      const num=document.createElement('span');num.className='page-num';num.textContent=String(pageNumber).padStart(2,'0');
+      element.append(date,weather,body,num);
+    }
+    function render(){
+      renderPage(left,diaries[spread*2],spread*2+1);
+      renderPage(right,diaries[spread*2+1],spread*2+2);
+      counter.textContent=`${String(spread+1).padStart(2,'0')} / ${String(spreadTotal).padStart(2,'0')}`;
+      prev.disabled=spread===0;next.disabled=spread===spreadTotal-1;
+      book.setAttribute('aria-label',`${spread+1}번째 장, 총 ${spreadTotal}장`);
+    }
+    function turn(delta){
+      const target=spread+delta;
+      if(moving||target<0||target>=spreadTotal)return;
+      moving=true;
+      prev.disabled=true;next.disabled=true;
+      book.classList.add(delta>0?'flipping-next':'flipping-prev');
+      const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      setTimeout(()=>{
+        spread=target;
+        render();
+        book.classList.remove('flipping-next','flipping-prev');
+        moving=false;
+      },reduced?0:250);
+    }
+    prev.addEventListener('click',()=>turn(-1));
+    next.addEventListener('click',()=>turn(1));
+    document.addEventListener('keydown',e=>{
+      if(e.key==='ArrowLeft'){e.preventDefault();turn(-1)}
+      if(e.key==='ArrowRight'){e.preventDefault();turn(1)}
+    });
+    let startX=null,startY=null;
+    book.addEventListener('touchstart',e=>{
+      if(e.touches.length!==1)return;
+      startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+    },{passive:true});
+    book.addEventListener('touchend',e=>{
+      if(startX===null)return;
+      const dx=e.changedTouches[0].clientX-startX;
+      const dy=e.changedTouches[0].clientY-startY;
+      if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.4){turn(dx<0?1:-1)}
+      startX=null;startY=null;
+    },{passive:true});
+    render();
+  </script>
+</body>
+</html>
